@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+</head>
+<body>
+  <h1>Shortened Links:</h1>
+   <ul>
+    <% for(var link in urls){ %>
+      <li> <%= urls[link] %>: http://www.<%= link %>.com</li>
+    <% } %>
+   </ul>
+   <a href="#">Shorten new URL</a>
+</body>
+</html>

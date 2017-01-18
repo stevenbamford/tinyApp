@@ -18,6 +18,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+app.get("/", (request, response) => {
+  response.redirect("/urls");
+});
+
 app.get("/urls", (request, response) => {
   let templateVars = { urls: urlDatabase};
   response.render("urls_index", templateVars);
@@ -30,6 +34,16 @@ app.get("/urls/new", (request, response) => {
 //Add new URL
 app.post("/urls", (request, response) => {
   let shortUrl = generateRandomString();
+  if(!request.body.longURL){
+    response.redirect("http://localhost:8080/urls/new");
+    return;
+  }
+  for(let key in urlDatabase){
+     if(urlDatabase[key] === request.body.longURL){
+      response.redirect("http://localhost:8080/urls/" + key);
+      return;
+     }
+  }
   urlDatabase[shortUrl] = request.body.longURL;
   response.redirect("http://localhost:8080/urls/" + shortUrl);
 });
@@ -43,7 +57,6 @@ app.post("/urls/:id/update", (request, response) => {
    urlDatabase[request.params.id] = request.body.longURL;
    response.redirect("http://localhost:8080/urls/");
 });
-
 
 app.get("/u/:shortURL", (request, response) => {
   let longURL = urlDatabase[request.params.shortURL];
@@ -64,19 +77,6 @@ app.get("/urls/:id", (request, response) => {
     });
   }
 });
-
-
-// app.get("/", (request, response) => {
-//   response.end("Hello!");
-// });
-
-// app.get("/urls.json", (request, response) => {
-//   response.json(urlDatabase);
-// });
-
-// app.get("/hello", (request, response) => {
-//   response.end("<html><body>Hello <b>World</b></body></html>\n");
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

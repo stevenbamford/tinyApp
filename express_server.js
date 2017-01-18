@@ -24,7 +24,12 @@ app.get("/urls/new", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortUrl = generateRandomString();
   urlDatabase[shortUrl] = request.body.longURL;
-  response.redirect("http://localhost:8080/urls/" + shortUrl);     // Respond with 'Ok' (we will replace this)
+  response.redirect("http://localhost:8080/urls/" + shortUrl);
+});
+
+app.post("/urls/:id/delete", (request, response) => {
+  delete urlDatabase[request.params.id]
+  response.redirect("http://localhost:8080/urls/");
 });
 
 app.get("/u/:shortURL", (request, response) => {

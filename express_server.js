@@ -7,6 +7,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
+app.use(express.static(__dirname + '/public'));
+
 const generateRandomString = () => {
   return String(Math.random().toString(36).slice(2,8));
 };
@@ -25,7 +27,8 @@ app.get("/urls/new", (request, response) => {
   response.render("urls_new");
 });
 
-app.post("/urls/new", (request, response) => {
+//Add new URL
+app.post("/urls", (request, response) => {
   let shortUrl = generateRandomString();
   urlDatabase[shortUrl] = request.body.longURL;
   response.redirect("http://localhost:8080/urls/" + shortUrl);

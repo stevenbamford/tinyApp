@@ -55,6 +55,23 @@ input{
   transition: letter-spacing: 1s;
 }
 
-#headerRem:hover{
+/*#headerRem:hover{
  letter-spacing: 0.10px;
+}
+
+#headerRem{
+  animation-duration: 2s;
+  animation-name: letter-spacing;
+}*/
+
+#headerRem {
+  letter-spacing: -2px;
+  animation-duration: 3s;
+  animation-name: shrinkSpacing;
+
+}
+
+@keyframes shrinkSpacing {
+  from { letter-spacing:4px; }
+  to  { letter-spacing: -2px; }
 }

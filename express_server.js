@@ -1,8 +1,8 @@
-var express = require("express");
-var app = express();
-var PORT = process.env.PORT || 8080;
+const express = require("express");
+const app = express();
+const PORT = process.env.PORT || 8080;
 
-var bodyParser = require("body-parser");
+const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
@@ -13,13 +13,13 @@ var urlDatabase = {
 };
 
 app.get("/urls", (request, response) => {
-  var templateVars = { urls: urlDatabase};
+  let templateVars = { urls: urlDatabase};
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){
-    var templateVars = {
+    let templateVars = {
       shortURL: "http://" + request.params.id +".com",
       longURL: urlDatabase[request.params.id]
     }
@@ -36,8 +36,8 @@ app.get("/urls/new", (request, response) => {
   response.render("urls_new");
 });
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // debug statement to see POST parameters
+app.post("/urls", (request, response) => {
+  console.log(request.body);  // debug statement to see POST parameters
   respond.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 

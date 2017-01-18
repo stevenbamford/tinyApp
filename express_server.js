@@ -24,16 +24,13 @@ app.get("/urls/new", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortUrl = generateRandomString();
   urlDatabase[shortUrl] = request.body.longURL;
-  response.redirect("http://localhost:8080/urls/" + shortUrl);
-  console.log(urlDatabase);        // Respond with 'Ok' (we will replace this)
+  response.redirect("http://localhost:8080/urls/" + shortUrl);     // Respond with 'Ok' (we will replace this)
 });
 
-// app.get("/u/:shortURL", (request, response) => {
-//   // let longURL = request.body.longURL;
-//   console.log(request);
-//   res.redirect(/urls/shortURL);
-
-// });
+app.get("/u/:shortURL", (request, response) => {
+  let longURL = urlDatabase[request.params.shortURL];
+  response.redirect(longURL);
+ });
 
 app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){

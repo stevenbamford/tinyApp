@@ -6,11 +6,20 @@
 <body>
   <%- include("partials/_header") %>
   <h1>Shortened Links:</h1>
-   <ul>
-    <% for(var link in urls){ %>
-      <li> <%= urls[link] %>: http://www.<%= link %>.com</li>
+  <table style="width:50%", border="1px,solid,black">
+    <tr>
+      <td><strong>Original URL</strong></td>
+      <td><strong>Shortened URL</strong></td>
+    </tr>
+      <% for(let link in urls){ %>
+    <tr>
+      <td> <%= urls[link] %></td>
+      <td> http://www.<%= link %>.com </td>
+    </tr>
     <% } %>
-   </ul>
-   <a href="#">Shorten new URL</a>
+  </table>
+  <br>
+   <a href="http://localhost:8080/urls/new">Shorten new URL</a>
 </body>
 </html>
+

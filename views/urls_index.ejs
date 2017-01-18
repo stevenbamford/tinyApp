@@ -6,7 +6,7 @@
 <body>
   <%- include("partials/_header") %>
   <h1>Shortened Links:</h1>
-  <table style="width:50%", border="1px,solid,black">
+  <table style="width:50%">
     <tr>
       <td><strong>Original URL</strong></td>
       <td><strong>Shortened URL</strong></td>
@@ -15,6 +15,7 @@
     <tr>
       <td> <%= urls[link] %></td>
       <td> http://www.<%= link %>.com </td>
+      <td><button><a href="/urls/<%=link%>"</a>Edit</button></td>
       <td><form method="POST" action="/urls/<%= link %>/delete"><button>Delete</button></form></td>
     </tr>
     <% } %>

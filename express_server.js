@@ -37,7 +37,6 @@ app.post("/urls/:id/delete", (request, response) => {
 });
 
 app.post("/urls/:id/update", (request, response) => {
-  console.log(request.params);
    urlDatabase[request.params.id] = request.body.longURL;
    response.redirect("http://localhost:8080/urls/");
 });

@@ -4,7 +4,11 @@
   <title>TinyApp</title>
 </head>
 <body>
-    <p> Original url: <%= longURL %> </p>
-    <p> Shortened url: <%= shortURL %> </p>
+    <p> <%= longURL %>   <strong>===></strong>   <%= shortURL %> </p>
+    <form action="/urls/<%=shortURL%>/update" method="POST">
+      <input id="longURL" name="longURL" type="text" placeholder="<%= longURL %>" style="width: 300px">
+      <input type="submit" value="Update">
+    </form>
 </body>
 </html>
+

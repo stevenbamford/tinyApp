@@ -15,6 +15,7 @@
     <tr>
       <td> <%= urls[link] %></td>
       <td> http://www.<%= link %>.com </td>
+      <td><form method="POST" action="/urls/<%= link %>/delete"><button>Delete</button></form></td>
     </tr>
     <% } %>
   </table>

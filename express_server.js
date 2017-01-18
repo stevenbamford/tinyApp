@@ -7,7 +7,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
-var urlDatabase = {
+const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
@@ -16,6 +16,24 @@ app.get("/urls", (request, response) => {
   let templateVars = { urls: urlDatabase};
   response.render("urls_index", templateVars);
 });
+
+app.get("/urls/new", (request, response) => {
+  response.render("urls_new");
+});
+
+app.post("/urls", (request, response) => {
+  let shortUrl = generateRandomString();
+  urlDatabase[shortUrl] = request.body.longURL;
+  response.redirect("http://localhost:8080/urls/" + shortUrl);
+  console.log(urlDatabase);        // Respond with 'Ok' (we will replace this)
+});
+
+// app.get("/u/:shortURL", (request, response) => {
+//   // let longURL = request.body.longURL;
+//   console.log(request);
+//   res.redirect(/urls/shortURL);
+
+// });
 
 app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){
@@ -30,15 +48,6 @@ app.get("/urls/:id", (request, response) => {
     longURL: "URL not in database"
     });
   }
-});
-
-app.get("/urls/new", (request, response) => {
-  response.render("urls_new");
-});
-
-app.post("/urls", (request, response) => {
-  console.log(request.body);  // debug statement to see POST parameters
-  respond.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/", (request, response) => {
@@ -56,3 +65,8 @@ app.get("/hello", (request, response) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+const generateRandomString = () => {
+  return String((Math.floor(Math.random()* 1e10).toString(32)));
+};

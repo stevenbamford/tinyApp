@@ -79,11 +79,23 @@ app.get("/register", (request, response) =>{
 
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
-  users[userID] = {"id": userID, "email":request.body.email};
-  response.cookie("user_id", userID);
-  response.redirect("/urls");
-  console.log(users);
-})
+  // console.log(userID);
+  for(let user in users){
+    if(users[user]["email"] === request.body.email){
+      response.statusCode = 400;
+      response.send("Error code 400. Email already exists in database.");
+      return;
+    }
+  }
+    if(!request.body.password || !request.body.email){
+      response.statusCode = 400;
+      response.send("Error code 400. Please enter a valid email adress and password.");
+      return;
+    }
+    users[userID] = {"id": userID, "email":request.body.email, "password":request.body.password};
+    response.cookie("user_id", userID);
+    response.redirect("/urls");
+});
 
 app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){

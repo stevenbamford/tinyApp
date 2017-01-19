@@ -32,7 +32,7 @@ app.get("/urls", (request, response) => {
     urls: urlDatabase,
     users: users,
     user_id: request.cookies["user_id"],
-    // user_email: users[request.cookies["user_id"]].email
+    email: email
   };
   response.render("urls_index", templateVars);
 });
@@ -85,6 +85,10 @@ app.get("/register", (request, response) =>{
   });
 });
 
+app.get("/users", (request, response) => {
+  response.json(users);
+});
+
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
 
@@ -101,7 +105,7 @@ app.post("/register", (request, response) =>{
       return;
     }
     users[userID] = {"id": userID, "email":request.body.email, "password":request.body.password};
-    // response.cookie("user_id", userID);
+     // response.cookie("user_id", userID);
     response.redirect("/urls");
     console.log(users);
 });
@@ -140,18 +144,20 @@ app.post("/login", (request, response) =>{
       if(users[user]["password"] === request.body.password){
         response.cookie("user_id", users[user]["id"]);
         response.redirect("/urls");
+        return;
       }else{
         response.send("Error code 403. Incorrect password");
         return;
       }
-    }else{
-      response.send("Error code 403. User not found");
     }
   }
+      response.send("Error code 403. User not found");
 });
 
 app.post("/logout", (request, response) =>{
+  console.log(request.cookies);
   response.clearCookie("user_id");
+  console.log(request.cookies);
   response.redirect("/urls");
 });
 

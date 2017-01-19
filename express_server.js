@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -8,6 +9,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
 app.use(express.static(__dirname + '/public'));
+app.use(cookieParser());
 
 const generateRandomString = () => {
   return String(Math.random().toString(36).slice(2,8));
@@ -23,12 +25,16 @@ app.get("/", (request, response) => {
 });
 
 app.get("/urls", (request, response) => {
-  let templateVars = { urls: urlDatabase};
+  let templateVars = {
+    urls: urlDatabase,
+    username: request.cookies["username"]
+  };
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (request, response) => {
-  response.render("urls_new");
+  response.render("urls_new",
+    {username: request.cookies["username"]});
 });
 
 //Add new URL
@@ -67,7 +73,8 @@ app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){
     let templateVars = {
       shortURL: request.params.id,
-      longURL: urlDatabase[request.params.id]
+      longURL: urlDatabase[request.params.id],
+      username: request.cookies["username"]
     }
     response.render("urls_show", templateVars);
   }else{
@@ -76,6 +83,17 @@ app.get("/urls/:id", (request, response) => {
     longURL: "URL not in database"
     });
   }
+});
+
+app.post("/login", (request, response) =>{
+  response.cookie("username", request.body.username);
+  console.log(request.body.username);
+  response.redirect("/urls");
+});
+
+app.post("/logout", (request, response) =>{
+  response.clearCookie("username");
+  response.redirect("/urls");
 });
 
 app.listen(PORT, () => {

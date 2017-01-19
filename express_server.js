@@ -20,6 +20,8 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {};
+
 app.get("/", (request, response) => {
   response.redirect("/urls");
 });
@@ -69,6 +71,20 @@ app.get("/u/:shortURL", (request, response) => {
   response.redirect(longURL);
  });
 
+app.get("/register", (request, response) =>{
+  response.render("registration", {
+    username: request.cookies["username"]
+  });
+});
+
+app.post("/register", (request, response) =>{
+  let userID = generateRandomString();
+  users[userID] = {"id": userID, "email":request.body.email};
+  response.cookie("user_id", userID);
+  response.redirect("/urls");
+  console.log(users);
+})
+
 app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){
     let templateVars = {
@@ -80,7 +96,8 @@ app.get("/urls/:id", (request, response) => {
   }else{
     response.render("urls_show", {
     shortURL: "URL not in database",
-    longURL: "URL not in database"
+    longURL: "URL not in database",
+    username: request.cookies["username"]
     });
   }
 });
@@ -95,6 +112,7 @@ app.post("/logout", (request, response) =>{
   response.clearCookie("username");
   response.redirect("/urls");
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

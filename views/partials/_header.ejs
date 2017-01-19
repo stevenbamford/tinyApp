@@ -1,14 +1,14 @@
-  <% if (username) { %>
+  <% if (users[user_id]) { %>
 <form method="POST" action="/logout">
-    <input id="username" name="username" type="text" placeholder="Username" value="<%=username%>">
+    <input id="username" name="username" type="text" placeholder="Username" value="<%= users[user_id].email%>">
     <input type="submit" value="Logout">
 </form>
   <% } else { %>
-  <form method="POST" action="/login">
-    <input id="username" name="username" type="text" placeholder="Username" value="<%=username%>">
-    <input type="submit" value="Login">
-</form>
+  <button class="edit"><a class="edit" href="http://localhost:8080/login">Login</a></button>
+  <button class="edit"><a class="edit" href="http://localhost:8080/register">Create account</a></button>
+
 <% } %>
 
 
 <h1><span style="font-size:1em;color:#03A9F4">TinyApp: &nbsp</span><span id="headerRem">Shorten your urls!</span></h1>
+

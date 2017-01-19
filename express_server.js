@@ -27,16 +27,22 @@ app.get("/", (request, response) => {
 });
 
 app.get("/urls", (request, response) => {
+
   let templateVars = {
     urls: urlDatabase,
-    username: request.cookies["username"]
+    users: users,
+    user_id: request.cookies["user_id"],
+    // user_email: users[request.cookies["user_id"]].email
   };
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (request, response) => {
-  response.render("urls_new",
-    {username: request.cookies["username"]});
+  response.render("urls_new",{
+    users: users,
+    username: request.cookies["username"],
+    user_id: request.cookies["user_id"]
+    });
 });
 
 //Add new URL
@@ -73,13 +79,15 @@ app.get("/u/:shortURL", (request, response) => {
 
 app.get("/register", (request, response) =>{
   response.render("registration", {
-    username: request.cookies["username"]
+    users: users,
+    username: request.cookies["username"],
+    user_id: request.cookies["user_id"]
   });
 });
 
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
-  // console.log(userID);
+
   for(let user in users){
     if(users[user]["email"] === request.body.email){
       response.statusCode = 400;
@@ -93,35 +101,57 @@ app.post("/register", (request, response) =>{
       return;
     }
     users[userID] = {"id": userID, "email":request.body.email, "password":request.body.password};
-    response.cookie("user_id", userID);
+    // response.cookie("user_id", userID);
     response.redirect("/urls");
+    console.log(users);
 });
 
 app.get("/urls/:id", (request, response) => {
   if(urlDatabase.hasOwnProperty(request.params.id)){
     let templateVars = {
+      users: users,
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id],
-      username: request.cookies["username"]
+      username: request.cookies["username"],
+      user_id: request.cookies["user_id"]
     }
     response.render("urls_show", templateVars);
   }else{
     response.render("urls_show", {
-    shortURL: "URL not in database",
-    longURL: "URL not in database",
-    username: request.cookies["username"]
+      users: users,
+      shortURL: "URL not in database",
+      longURL: "URL not in database",
+      username: request.cookies["username"],
+      user_id: request.cookies["user_id"]
     });
   }
 });
 
+app.get("/login", (request, response) => {
+  response.render("urls_login", {
+    user_id: request.cookies["user_id"],
+    users:users
+  });
+});
+
 app.post("/login", (request, response) =>{
-  response.cookie("username", request.body.username);
-  console.log(request.body.username);
-  response.redirect("/urls");
+  for(let user in users){
+    if(users[user]["email"] === request.body.email){
+      if(users[user]["password"] === request.body.password){
+        response.cookie("user_id", users[user]["id"]);
+        response.redirect("/urls");
+      }else{
+        response.send("Error code 403. Incorrect password");
+        return;
+      }
+    }else{
+      response.send("Error code 403. User not found");
+    }
+  }
 });
 
 app.post("/logout", (request, response) =>{
-  response.clearCookie("username");
+  response.clearCookie("user_id");
   response.redirect("/urls");
 });
 

@@ -29,6 +29,19 @@ const urlDatabase = {
 
 const users = {};
 
+const findUrlsByAuthor = function(database, cookie){
+  result = {};
+
+  for (url in database){
+    if(database[url]["author"] === cookie){
+      result[url] = {
+        "longURL": database[url]["longURL"]
+      }
+    }
+  }
+  return result;
+}
+
 app.get("/", (request, response) => {
   response.redirect("/urls");
 });
@@ -36,12 +49,11 @@ app.get("/", (request, response) => {
 app.get("/urls", (request, response) => {
 
   let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
-
-  // let longURL = urlDatabase[request.cookies["user_id"]]["longURL"];
+  let userDB = findUrlsByAuthor(urlDatabase, request.cookies["user_id"]);
 
   if(request.cookies["user_id"]){
   let templateVars = {
-    urls: urlDatabase,
+    urls: userDB,
     user_id: request.cookies["user_id"],
     email: email,
   };
@@ -54,11 +66,12 @@ app.get("/urls", (request, response) => {
 app.get("/urls/new", (request, response) => {
 
   let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.cookies["user_id"]);
 
   if (request.cookies["user_id"]){
 
     let templateVars = {
-      urls: urlDatabase,
+      urls: userDB,
       user_id: request.cookies["user_id"],
       email: email
     };
@@ -85,7 +98,7 @@ app.post("/urls", (request, response) => {
   }
   urlDatabase[shortUrl] = {
     "longURL": request.body.longURL,
-    "author": shortUrl,
+    "author": request.cookies["user_id"],
   }
   response.redirect("http://localhost:8080/urls/" + shortUrl);
 });
@@ -147,9 +160,10 @@ app.post("/register", (request, response) =>{
 app.get("/urls/:id", (request, response) => {
 
   let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.cookies["user_id"]);
   if(urlDatabase.hasOwnProperty(request.params.id)){
     let templateVars = {
-      urls: urlDatabase,
+      urls: userDB,
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id].longURL,
       username: request.cookies["username"],

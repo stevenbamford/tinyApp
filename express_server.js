@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -132,12 +133,14 @@ app.get("/register", (request, response) =>{
 });
 
 //Check to see that user has been added to users objects after registration
- app.get("/urlsadded", (request, response) => {
-   response.json(urlDatabase);
+ app.get("/users", (request, response) => {
+   response.json(users);
  });
 
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
+  let password = request.body.password;
+  let hashedPassword = bcrypt.hashSync(password, 10);
 
   for(let user in users){
     if(users[user]["email"] === request.body.email){
@@ -151,7 +154,7 @@ app.post("/register", (request, response) =>{
       response.send("Error code 400. Please enter a valid email adress and password.");
       return;
     }
-    users[userID] = {"id": userID, "email":request.body.email, "password":request.body.password};
+    users[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
     response.cookie("user_id", userID);
     response.redirect("/urls");
     console.log(users);
@@ -166,7 +169,6 @@ app.get("/urls/:id", (request, response) => {
       urls: userDB,
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id].longURL,
-      username: request.cookies["username"],
       user_id: request.cookies["user_id"],
       email: email
     }
@@ -175,7 +177,6 @@ app.get("/urls/:id", (request, response) => {
     response.render("urls_show", {
       shortURL: "URL not in database",
       longURL: "URL not in database",
-      username: request.cookies["username"],
       user_id: request.cookies["user_id"],
       email: email
     });
@@ -196,10 +197,10 @@ app.post("/login", (request, response) =>{
 
   for(let user in users){
     if(users[user]["email"] === email){
-      if(users[user]["password"] === password){
-        response.cookie("user_id", users[user]["id"]);
-        response.redirect("/urls");
-        return;
+      if(bcrypt.compareSync(password, users[user]["password"])){
+          response.cookie("user_id", users[user]["id"]);
+          response.redirect("/urls");
+          return;
       }else{
         response.send("Error code 403. Incorrect password");
         return;

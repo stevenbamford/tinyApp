@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const cookieSession = require('cookie-session');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -12,9 +13,16 @@ app.set("view engine", "ejs");
 app.use(express.static(__dirname + '/public'));
 app.use(cookieParser());
 
+app.use(cookieSession({
+  name: 'session',
+  keys: ["sdfsdfsdg"],
+}));
+
 const generateRandomString = () => {
   return String(Math.random().toString(36).slice(2,8));
 };
+
+
 
 const urlDatabase = {
   "b2xVn2": {
@@ -48,14 +56,14 @@ app.get("/", (request, response) => {
 });
 
 app.get("/urls", (request, response) => {
+  console.log(request.session.user_id);
+  let email = (request.session.user_id) ? users[request.session.user_id].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
 
-  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
-  let userDB = findUrlsByAuthor(urlDatabase, request.cookies["user_id"]);
-
-  if(request.cookies["user_id"]){
+  if(request.session.user_id){
   let templateVars = {
     urls: userDB,
-    user_id: request.cookies["user_id"],
+    user_id: request.session.user_id,
     email: email,
   };
   response.render("urls_index", templateVars);
@@ -66,14 +74,14 @@ app.get("/urls", (request, response) => {
 
 app.get("/urls/new", (request, response) => {
 
-  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
-  let userDB = findUrlsByAuthor(urlDatabase, request.cookies["user_id"]);
+  let email = (request.session.user_id) ? users[request.session.user_id].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
 
-  if (request.cookies["user_id"]){
+  if (request.session.user_id){
 
     let templateVars = {
       urls: userDB,
-      user_id: request.cookies["user_id"],
+      user_id: request.session.user_id,
       email: email
     };
 
@@ -99,7 +107,7 @@ app.post("/urls", (request, response) => {
   }
   urlDatabase[shortUrl] = {
     "longURL": request.body.longURL,
-    "author": request.cookies["user_id"],
+    "author": request.session.user_id,
   }
   response.redirect("http://localhost:8080/urls/" + shortUrl);
 });
@@ -120,12 +128,10 @@ app.get("/u/:shortURL", (request, response) => {
  });
 
 app.get("/register", (request, response) =>{
-  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+  let email = (request.session.user_id) ? users[request.session.user_id].email : "";
 
   let templateVars = {
     urls: urlDatabase,
-    username: request.cookies["username"],
-    user_id: request.cookies["user_id"],
     email: email
   }
 
@@ -155,21 +161,19 @@ app.post("/register", (request, response) =>{
       return;
     }
     users[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
-    response.cookie("user_id", userID);
+    request.session.user_id = userID;
     response.redirect("/urls");
-    console.log(users);
 });
 
 app.get("/urls/:id", (request, response) => {
 
-  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
-  let userDB = findUrlsByAuthor(urlDatabase, request.cookies["user_id"]);
+  let email = users[request.session.user_id] ? users[request.session.user_id].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
   if(urlDatabase.hasOwnProperty(request.params.id)){
     let templateVars = {
       urls: userDB,
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id].longURL,
-      user_id: request.cookies["user_id"],
       email: email
     }
     response.render("urls_show", templateVars);
@@ -177,16 +181,14 @@ app.get("/urls/:id", (request, response) => {
     response.render("urls_show", {
       shortURL: "URL not in database",
       longURL: "URL not in database",
-      user_id: request.cookies["user_id"],
       email: email
     });
   }
 });
 
 app.get("/login", (request, response) => {
-let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+let email = (request.session.user_id) ? users[request.session.user_id].email : "";
   response.render("urls_login", {
-    user_id: request.cookies["user_id"],
     email: email
   });
 });
@@ -198,7 +200,8 @@ app.post("/login", (request, response) =>{
   for(let user in users){
     if(users[user]["email"] === email){
       if(bcrypt.compareSync(password, users[user]["password"])){
-          response.cookie("user_id", users[user]["id"]);
+          // response.cookie("user_id", users[user]["id"]);
+          request.session.user_id = users[user]["id"];
           response.redirect("/urls");
           return;
       }else{
@@ -211,7 +214,7 @@ app.post("/login", (request, response) =>{
 });
 
 app.post("/logout", (request, response) =>{
-  response.clearCookie("user_id");
+  request.session = null;
   response.redirect("/urls");
 });
 

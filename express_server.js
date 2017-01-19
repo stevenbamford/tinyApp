@@ -42,13 +42,19 @@ app.get("/urls/new", (request, response) => {
 
   let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
 
-  let templateVars = {
-    urls: urlDatabase,
-    user_id: request.cookies["user_id"],
-    email: email
+  if (request.cookies["user_id"]){
+
+    let templateVars = {
+      urls: urlDatabase,
+      user_id: request.cookies["user_id"],
+      email: email
     };
 
-  response.render("urls_new", templateVars);
+    response.render("urls_new", templateVars);
+
+  }else{
+    response.redirect("/urls/login");
+  }
 });
 
 //Add new URL

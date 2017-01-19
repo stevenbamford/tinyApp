@@ -17,8 +17,8 @@
     <tr></tr>
       <% for(let link in urls){ %>
     <tr>
-      <td> <%= urls[link] %></td>
-      <td> http://www.<%= link %>.com </td>
+      <td> <a href="<%= urls[link]%>"><%= urls[link]%></td>
+      <td> <a href="/u/<%= link %>"><%= link %></a> </td>
       <td><button class="edit"><a class="edit" href="/urls/<%=link%>"</a>Edit <i class="fa fa-pencil" aria-hidden="true"></i></button></td>
       <td><form method="POST" action="/urls/<%= link %>/delete"><button class="delete">Delete <i class="fa fa-trash-o" aria-hidden="true"></i></button></form></td>
     </tr>

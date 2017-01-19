@@ -1,7 +1,7 @@
-  <% if (users[user_id]) { %>
+  <% if (email) { %>
 <form method="POST" action="/logout">
-    <input id="username" name="username" type="text" placeholder="Username" value="<%= users[user_id].email%>">
-    <input type="submit" value="Logout">
+    <input id="username" name="username" type="text" placeholder="Username" value="<%= email %>">
+    <button class="edit" type="submit">Logout</button>
 </form>
   <% } else { %>
   <button class="edit"><a class="edit" href="http://localhost:8080/login">Login</a></button>

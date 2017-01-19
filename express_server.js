@@ -28,9 +28,10 @@ app.get("/", (request, response) => {
 
 app.get("/urls", (request, response) => {
 
+  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+
   let templateVars = {
     urls: urlDatabase,
-    users: users,
     user_id: request.cookies["user_id"],
     email: email
   };
@@ -38,11 +39,16 @@ app.get("/urls", (request, response) => {
 });
 
 app.get("/urls/new", (request, response) => {
-  response.render("urls_new",{
-    users: users,
-    username: request.cookies["username"],
-    user_id: request.cookies["user_id"]
-    });
+
+  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+
+  let templateVars = {
+    urls: urlDatabase,
+    user_id: request.cookies["user_id"],
+    email: email
+    };
+
+  response.render("urls_new", templateVars);
 });
 
 //Add new URL
@@ -78,16 +84,22 @@ app.get("/u/:shortURL", (request, response) => {
  });
 
 app.get("/register", (request, response) =>{
-  response.render("registration", {
-    users: users,
+  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
+
+  let templateVars = {
+    urls: urlDatabase,
     username: request.cookies["username"],
-    user_id: request.cookies["user_id"]
-  });
+    user_id: request.cookies["user_id"],
+    email: email
+  }
+
+  response.render("registration", templateVars);
 });
 
-app.get("/users", (request, response) => {
-  response.json(users);
-});
+//Check to see that user has been added to users objects after registration
+// app.get("/users", (request, response) => {
+//   response.json(users);
+// });
 
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
@@ -105,43 +117,50 @@ app.post("/register", (request, response) =>{
       return;
     }
     users[userID] = {"id": userID, "email":request.body.email, "password":request.body.password};
-     // response.cookie("user_id", userID);
+    response.cookie("user_id", userID);
     response.redirect("/urls");
     console.log(users);
 });
 
 app.get("/urls/:id", (request, response) => {
+
+  let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
   if(urlDatabase.hasOwnProperty(request.params.id)){
     let templateVars = {
-      users: users,
+      urls: urlDatabase,
       shortURL: request.params.id,
       longURL: urlDatabase[request.params.id],
       username: request.cookies["username"],
-      user_id: request.cookies["user_id"]
+      user_id: request.cookies["user_id"],
+      email: email
     }
     response.render("urls_show", templateVars);
   }else{
     response.render("urls_show", {
-      users: users,
       shortURL: "URL not in database",
       longURL: "URL not in database",
       username: request.cookies["username"],
-      user_id: request.cookies["user_id"]
+      user_id: request.cookies["user_id"],
+      email: email
     });
   }
 });
 
 app.get("/login", (request, response) => {
+let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
   response.render("urls_login", {
     user_id: request.cookies["user_id"],
-    users:users
+    email: email
   });
 });
 
 app.post("/login", (request, response) =>{
+  let email = request.body.email;
+  let password = request.body.password;
+
   for(let user in users){
-    if(users[user]["email"] === request.body.email){
-      if(users[user]["password"] === request.body.password){
+    if(users[user]["email"] === email){
+      if(users[user]["password"] === password){
         response.cookie("user_id", users[user]["id"]);
         response.redirect("/urls");
         return;
@@ -151,13 +170,11 @@ app.post("/login", (request, response) =>{
       }
     }
   }
-      response.send("Error code 403. User not found");
+  response.send("Error code 403. User not found");
 });
 
 app.post("/logout", (request, response) =>{
-  console.log(request.cookies);
   response.clearCookie("user_id");
-  console.log(request.cookies);
   response.redirect("/urls");
 });
 

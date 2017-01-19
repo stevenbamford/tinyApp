@@ -16,9 +16,16 @@ const generateRandomString = () => {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+  "b2xVn2": {
+    "longURL": "http://www.lighthouselabs.ca",
+    "author": "b2xVn2"
+  },
+  "9sm5xK": {
+    "longURL":"http://www.google.com",
+    "author": "9sm5xK"
+  }
+}
+
 
 const users = {};
 
@@ -30,12 +37,18 @@ app.get("/urls", (request, response) => {
 
   let email = (request.cookies["user_id"]) ? users[request.cookies["user_id"]].email : "";
 
+  // let longURL = urlDatabase[request.cookies["user_id"]]["longURL"];
+
+  if(request.cookies["user_id"]){
   let templateVars = {
     urls: urlDatabase,
     user_id: request.cookies["user_id"],
-    email: email
+    email: email,
   };
   response.render("urls_index", templateVars);
+  }else{
+    response.redirect("/login");
+  }
 });
 
 app.get("/urls/new", (request, response) => {
@@ -70,7 +83,10 @@ app.post("/urls", (request, response) => {
       return;
      }
   }
-  urlDatabase[shortUrl] = request.body.longURL;
+  urlDatabase[shortUrl] = {
+    "longURL": request.body.longURL,
+    "author": shortUrl,
+  }
   response.redirect("http://localhost:8080/urls/" + shortUrl);
 });
 
@@ -80,12 +96,12 @@ app.post("/urls/:id/delete", (request, response) => {
 });
 
 app.post("/urls/:id/update", (request, response) => {
-   urlDatabase[request.params.id] = request.body.longURL;
+   urlDatabase[request.params.id].longURL = request.body.longURL;
    response.redirect("http://localhost:8080/urls/");
 });
 
 app.get("/u/:shortURL", (request, response) => {
-  let longURL = urlDatabase[request.params.shortURL];
+  let longURL = urlDatabase[request.params.shortURL].longURL;
   response.redirect(longURL);
  });
 
@@ -103,9 +119,9 @@ app.get("/register", (request, response) =>{
 });
 
 //Check to see that user has been added to users objects after registration
-// app.get("/users", (request, response) => {
-//   response.json(users);
-// });
+ app.get("/urlsadded", (request, response) => {
+   response.json(urlDatabase);
+ });
 
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
@@ -135,7 +151,7 @@ app.get("/urls/:id", (request, response) => {
     let templateVars = {
       urls: urlDatabase,
       shortURL: request.params.id,
-      longURL: urlDatabase[request.params.id],
+      longURL: urlDatabase[request.params.id].longURL,
       username: request.cookies["username"],
       user_id: request.cookies["user_id"],
       email: email

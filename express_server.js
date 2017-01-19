@@ -53,7 +53,7 @@ app.get("/urls/new", (request, response) => {
     response.render("urls_new", templateVars);
 
   }else{
-    response.redirect("/urls/login");
+    response.redirect("/login");
   }
 });
 

@@ -30,7 +30,7 @@ const urlDatabase = {
   }
 }
 
-const users = {};
+const usersDatabase = {};
 
 const findUrlsByAuthor = function(database, cookie){
   result = {};
@@ -45,47 +45,70 @@ const findUrlsByAuthor = function(database, cookie){
   return result;
 }
 
+const checkLoginDetails = function(email, password, database){
+  for(let user in database){
+    if(database[user]["email"] === email){
+      if(bcrypt.compareSync(password, database[user]["password"])){
+        return database[user]["id"];
+      }
+    }else{
+      return;
+    }
+  }
+}
+
+app.get("/login", (request, response) => {
+  let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
+
+  response.render("urls_login", {
+    email: email
+  });
+});
+
+app.post("/login", (request, response) => {
+
+  let email = request.body.email;
+  let password = request.body.password;
+  let userID = checkLoginDetails(email, password, usersDatabase);
+
+  if(userID){
+    request.session.user_id = userID;
+    response.redirect("/urls");
+  }else{
+    response.send("401 Forbidden. Please check <a href=\"/login\">Login</a> details and ensure you have created an account with us.");
+  }
+
+});
+
+app.post("/logout", (request, response) =>{
+  request.session = null;
+  response.redirect("/login");
+});
+
 app.get("/", (request, response) => {
-  response.redirect("/urls");
+  if(request.session.user_id){
+    response.redirect("/urls");
+  }else{
+    response.redirect("/login");
+  }
 });
 
 app.get("/urls", (request, response) => {
-  let email = (request.session.user_id) ? users[request.session.user_id].email : "";
+  let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
   let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
 
   if(request.session.user_id){
-  let templateVars = {
-    urls: userDB,
-    user_id: request.session.user_id,
-    email: email,
-  };
-  response.render("urls_index", templateVars);
-  }else{
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
-  }
-});
-
-app.get("/urls/new", (request, response) => {
-
-  let email = (request.session.user_id) ? users[request.session.user_id].email : "";
-  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
-
-  if (request.session.user_id){
-
     let templateVars = {
       urls: userDB,
       user_id: request.session.user_id,
-      email: email
+      email: email,
     };
-
-    response.render("urls_new", templateVars);
-
+    response.render("urls_index", templateVars);
   }else{
     response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
 });
 
-//Add new URL
 app.post("/urls", (request, response) => {
 
   if(request.session.user_id){
@@ -110,12 +133,42 @@ app.post("/urls", (request, response) => {
   }
 });
 
+app.get("/urls/new", (request, response) => {
+
+  let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
+
+  if (request.session.user_id){
+
+    let templateVars = {
+      urls: userDB,
+      user_id: request.session.user_id,
+      email: email
+    };
+
+    response.render("urls_new", templateVars);
+  }else{
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+  }
+});
+
 app.post("/urls/:id/delete", (request, response) => {
-  delete urlDatabase[request.params.id]
-  response.redirect("http://localhost:8080/urls/");
+  if(!request.session.user_id){
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+  }
+  if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
+     response.send("403 Forbidden.");
+   }else{
+    delete urlDatabase[request.params.id]
+    response.redirect("http://localhost:8080/urls/");
+  }
 });
 
 app.post("/urls/:id/update", (request, response) => {
+  if(!request.session.user_id){
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    return;
+  }
   if(!request.body.longURL){
     response.redirect("/urls/" + request.params.id);
     return;
@@ -124,11 +177,7 @@ app.post("/urls/:id/update", (request, response) => {
      response.send("404 Not found.");
      return;
   }
-  if(!request.session.user_id){
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
-    return;
-  }
-   if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
+  if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
      response.send("403 Forbidden.");
      return;
    }
@@ -152,7 +201,7 @@ app.get("/register", (request, response) =>{
     response.redirect("/");
     return;
   }
-  let email = (request.session.user_id) ? users[request.session.user_id].email : "";
+  let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
   let templateVars = {
     urls: urlDatabase,
     email: email
@@ -161,18 +210,13 @@ app.get("/register", (request, response) =>{
   response.render("registration", templateVars);
 });
 
-//Check to see that user has been added to users objects after registration
- app.get("/users", (request, response) => {
-   response.json(users);
- });
-
 app.post("/register", (request, response) =>{
   let userID = generateRandomString();
   let password = request.body.password;
   let hashedPassword = bcrypt.hashSync(password, 10);
 
-  for(let user in users){
-    if(users[user]["email"] === request.body.email){
+  for(let user in usersDatabase){
+    if(usersDatabase[user]["email"] === request.body.email){
       response.statusCode = 400;
       response.send("400 Bad Request. Email already exists in database.");
       return;
@@ -183,68 +227,40 @@ app.post("/register", (request, response) =>{
       response.send("400. Please enter a valid email adress and password.");
       return;
     }
-    users[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
+    usersDatabase[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
     request.session.user_id = userID;
     response.redirect("/urls");
 });
 
 app.get("/urls/:id", (request, response) => {
 
+  let email = usersDatabase[request.session.user_id] ? usersDatabase[request.session.user_id].email : "";
+  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
+
+  //If user is logged in
   if(request.session.user_id){
-    let email = users[request.session.user_id] ? users[request.session.user_id].email : "";
-    let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
-    if(urlDatabase.hasOwnProperty(request.params.id)){
-      let templateVars = {
-        urls: userDB,
-        shortURL: request.params.id,
-        longURL: urlDatabase[request.params.id].longURL,
-        email: email
+    //If url exists
+    if(urlDatabase[request.params.id]){
+      //If url author matches cookie, render the page
+      if(urlDatabase[request.params.id]["author"] === request.session.user_id){
+        let templateVars = {
+          urls: userDB,
+          shortURL: request.params.id,
+          longURL: urlDatabase[request.params.id].longURL,
+          email: email
+        }
+        response.render("urls_show", templateVars);
+      }else{
+        response.send("403 Forbidden.");
       }
-      response.render("urls_show", templateVars);
     }else{
-      response.render("urls_show", {
-        shortURL: "URL not in database",
-        longURL: "URL not in database",
-        email: email
-      });
+      response.send("404 File not found.");
     }
   }else{
       response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
     }
 });
 
-app.get("/login", (request, response) => {
-let email = (request.session.user_id) ? users[request.session.user_id].email : "";
-  response.render("urls_login", {
-    email: email
-  });
-});
-
-app.post("/login", (request, response) =>{
-  let email = request.body.email;
-  let password = request.body.password;
-
-  for(let user in users){
-    if(users[user]["email"] === email){
-      if(bcrypt.compareSync(password, users[user]["password"])){
-          request.session.user_id = users[user]["id"];
-          response.redirect("/urls");
-          return;
-      }else{
-        response.send("401 Forbidden. Incorrect password");
-        return;
-      }
-    }
-  }
-  response.send("403 Forbidden. User not found");
-});
-
-app.post("/logout", (request, response) =>{
-  request.session = null;
-  response.redirect("/login");
-});
-
-
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`TinyApp listening on port ${PORT}!`);
 });

@@ -94,22 +94,27 @@ app.get("/urls/new", (request, response) => {
 
 //Add new URL
 app.post("/urls", (request, response) => {
-  let shortUrl = generateRandomString();
-  if(!request.body.longURL){
-    response.redirect("http://localhost:8080/urls/new");
-    return;
-  }
-  for(let key in urlDatabase){
-     if(urlDatabase[key] === request.body.longURL){
+
+  if(request.session.user_id){
+    let shortUrl = generateRandomString();
+    if(!request.body.longURL){
+      response.redirect("http://localhost:8080/urls/new");
+      return;
+    }
+    for(let key in urlDatabase){
+      if(urlDatabase[key] === request.body.longURL){
       response.redirect("http://localhost:8080/urls/" + key);
       return;
-     }
+    }
   }
   urlDatabase[shortUrl] = {
     "longURL": request.body.longURL,
     "author": request.session.user_id,
   }
   response.redirect("http://localhost:8080/urls/" + shortUrl);
+  }else{
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+  }
 });
 
 app.post("/urls/:id/delete", (request, response) => {
@@ -118,8 +123,26 @@ app.post("/urls/:id/delete", (request, response) => {
 });
 
 app.post("/urls/:id/update", (request, response) => {
+  if(!request.body.longURL){
+    response.redirect("/urls/" + request.params.id);
+    return;
+  }
+  if(!urlDatabase[request.params.id]){
+     response.send("404 Not found.");
+     return;
+  }
+  if(!request.session.user_id){
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    return;
+  }
+   if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
+     response.send("403 Forbidden.");
+     return;
+   }
+  else{
    urlDatabase[request.params.id].longURL = request.body.longURL;
    response.redirect("http://localhost:8080/urls/");
+  }
 });
 
 app.get("/u/:shortURL", (request, response) => {

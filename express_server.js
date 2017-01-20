@@ -68,7 +68,7 @@ app.get("/urls", (request, response) => {
   };
   response.render("urls_index", templateVars);
   }else{
-    response.redirect("/login");
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
 });
 
@@ -88,7 +88,7 @@ app.get("/urls/new", (request, response) => {
     response.render("urls_new", templateVars);
 
   }else{
-    response.redirect("/login");
+    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
 });
 
@@ -123,8 +123,12 @@ app.post("/urls/:id/update", (request, response) => {
 });
 
 app.get("/u/:shortURL", (request, response) => {
-  let longURL = urlDatabase[request.params.shortURL].longURL;
-  response.redirect(longURL);
+  if(!urlDatabase[request.params.shortURL]){
+    response.send("404 Not found.");
+  }else{
+    longURL = urlDatabase[request.params.shortURL].longURL;
+    response.redirect(longURL);
+  }
  });
 
 app.get("/register", (request, response) =>{
@@ -215,7 +219,7 @@ app.post("/login", (request, response) =>{
 
 app.post("/logout", (request, response) =>{
   request.session = null;
-  response.redirect("/urls");
+  response.redirect("/login");
 });
 
 

@@ -1,5 +1,5 @@
   <% if (email) { %>
-<form method="POST" action="/logout">
+<form id="username" method="POST" action="/logout">
     <input id="username" name="username" type="text" placeholder="Username" value="<%= email %>">
     <button class="edit" type="submit">Logout</button>
 </form>

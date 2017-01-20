@@ -155,8 +155,11 @@ app.get("/u/:shortURL", (request, response) => {
  });
 
 app.get("/register", (request, response) =>{
+  if(request.session.user_id){
+    response.redirect("/");
+    return;
+  }
   let email = (request.session.user_id) ? users[request.session.user_id].email : "";
-
   let templateVars = {
     urls: urlDatabase,
     email: email
@@ -178,13 +181,13 @@ app.post("/register", (request, response) =>{
   for(let user in users){
     if(users[user]["email"] === request.body.email){
       response.statusCode = 400;
-      response.send("Error code 400. Email already exists in database.");
+      response.send("400 Bad Request. Email already exists in database.");
       return;
     }
   }
     if(!request.body.password || !request.body.email){
       response.statusCode = 400;
-      response.send("Error code 400. Please enter a valid email adress and password.");
+      response.send("400. Please enter a valid email adress and password.");
       return;
     }
     users[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
@@ -232,12 +235,12 @@ app.post("/login", (request, response) =>{
           response.redirect("/urls");
           return;
       }else{
-        response.send("Error code 403. Incorrect password");
+        response.send("401 Forbidden. Incorrect password");
         return;
       }
     }
   }
-  response.send("Error code 403. User not found");
+  response.send("403 Forbidden. User not found");
 });
 
 app.post("/logout", (request, response) =>{

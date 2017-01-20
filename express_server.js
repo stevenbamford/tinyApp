@@ -1,17 +1,14 @@
 const express = require("express");
-const cookieParser = require('cookie-parser');
-const bcrypt = require('bcrypt');
-const cookieSession = require('cookie-session');
 const app = express();
+const cookieSession = require('cookie-session');
+const bcrypt = require('bcrypt');
 const PORT = process.env.PORT || 8080;
-
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
 app.use(express.static(__dirname + '/public'));
-app.use(cookieParser());
 
 app.use(cookieSession({
   name: 'session',
@@ -21,8 +18,6 @@ app.use(cookieSession({
 const generateRandomString = () => {
   return String(Math.random().toString(36).slice(2,8));
 };
-
-
 
 const urlDatabase = {
   "b2xVn2": {
@@ -34,7 +29,6 @@ const urlDatabase = {
     "author": "9sm5xK"
   }
 }
-
 
 const users = {};
 
@@ -56,7 +50,6 @@ app.get("/", (request, response) => {
 });
 
 app.get("/urls", (request, response) => {
-  console.log(request.session.user_id);
   let email = (request.session.user_id) ? users[request.session.user_id].email : "";
   let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
 
@@ -149,7 +142,7 @@ app.get("/u/:shortURL", (request, response) => {
   if(!urlDatabase[request.params.shortURL]){
     response.send("404 Not found.");
   }else{
-    longURL = urlDatabase[request.params.shortURL].longURL;
+    let longURL = urlDatabase[request.params.shortURL].longURL;
     response.redirect(longURL);
   }
  });
@@ -197,23 +190,27 @@ app.post("/register", (request, response) =>{
 
 app.get("/urls/:id", (request, response) => {
 
-  let email = users[request.session.user_id] ? users[request.session.user_id].email : "";
-  let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
-  if(urlDatabase.hasOwnProperty(request.params.id)){
-    let templateVars = {
-      urls: userDB,
-      shortURL: request.params.id,
-      longURL: urlDatabase[request.params.id].longURL,
-      email: email
+  if(request.session.user_id){
+    let email = users[request.session.user_id] ? users[request.session.user_id].email : "";
+    let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
+    if(urlDatabase.hasOwnProperty(request.params.id)){
+      let templateVars = {
+        urls: userDB,
+        shortURL: request.params.id,
+        longURL: urlDatabase[request.params.id].longURL,
+        email: email
+      }
+      response.render("urls_show", templateVars);
+    }else{
+      response.render("urls_show", {
+        shortURL: "URL not in database",
+        longURL: "URL not in database",
+        email: email
+      });
     }
-    response.render("urls_show", templateVars);
   }else{
-    response.render("urls_show", {
-      shortURL: "URL not in database",
-      longURL: "URL not in database",
-      email: email
-    });
-  }
+      response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    }
 });
 
 app.get("/login", (request, response) => {
@@ -230,7 +227,6 @@ app.post("/login", (request, response) =>{
   for(let user in users){
     if(users[user]["email"] === email){
       if(bcrypt.compareSync(password, users[user]["password"])){
-          // response.cookie("user_id", users[user]["id"]);
           request.session.user_id = users[user]["id"];
           response.redirect("/urls");
           return;

@@ -1,32 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>TinyApp</title>
+  <title>TinyApp&trade;</title>
   <script src="https://use.fontawesome.com/c7d7b636c5.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   <link type="text/css" rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
   <%- include("partials/_header") %>
-  <table style="width:50%">
-    <tr>
-      <td style="font-size: 18px"><strong>Original URL:</strong></td>
-      <td style="font-size: 18px"><strong>Shortened URL:</strong></td>
+  <table cellpadding="10" id="urls">
+    <tr id="tableHeaders">
+      <th>Original URL:</th>
+      <th>Shortened URL:</th>
     </tr>
-    <tr></tr>
     <tr></tr>
       <% for(let link in urls){ %>
     <tr>
-      <td> <a href=<%= urls[link].longURL%>><%= urls[link].longURL%></td>
-      <td> <a href="/u/<%= link %>"><%= link %></a> </td>
+      <td> <a style="color:#03A9F4" href="<%= urls[link].longURL%>"><%= urls[link].longURL%></td>
+      <td> <a href="/u/<%= link %>">http://www.localhost:8080/<%=link %>.com</a> </td>
       <td><button class="edit"><a class="edit" href="/urls/<%=link%>"</a>Edit <i class="fa fa-pencil" aria-hidden="true"></i></button></td>
       <td><form method="POST" action="/urls/<%= link %>/delete"><button class="delete">Delete <i class="fa fa-trash-o" aria-hidden="true"></i></button></form></td>
     </tr>
     <% } %>
   </table>
   <br>
-   <button class="edit"><a class="edit" href="http://localhost:8080/urls/new">Shorten new URL</a></button>
-   <p> </p>
+  <button class="edit"><a class="edit" href="http://localhost:8080/urls/new">Shorten new URL</a></button>
 </body>
 </html>
 

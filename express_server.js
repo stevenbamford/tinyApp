@@ -12,11 +12,11 @@ app.use(express.static(__dirname + '/public'));
 
 app.use(cookieSession({
   name: 'session',
-  keys: ["sdfsdfsdg"],
+  keys: ["sdfsdfsdg"]
 }));
 
 const generateRandomString = () => {
-  return String(Math.random().toString(36).slice(2,8));
+  return String(Math.random().toString(36).slice(2, 8));
 };
 
 const urlDatabase = {
@@ -25,10 +25,10 @@ const urlDatabase = {
     "author": "b2xVn2"
   },
   "9sm5xK": {
-    "longURL":"http://www.google.com",
+    "longURL": "http://www.google.com",
     "author": "9sm5xK"
   }
-}
+};
 
 const usersDatabase = {};
 
@@ -39,11 +39,11 @@ const findUrlsByAuthor = function(database, cookie){
     if(database[url]["author"] === cookie){
       result[url] = {
         "longURL": database[url]["longURL"]
-      }
+      };
     }
   }
   return result;
-}
+};
 
 const checkLoginDetails = function(email, password, database){
   for(let user in database){
@@ -55,14 +55,17 @@ const checkLoginDetails = function(email, password, database){
       return;
     }
   }
-}
+};
 
 app.get("/login", (request, response) => {
-  let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
-
-  response.render("urls_login", {
-    email: email
-  });
+  if(request.session.user_id){
+    response.redirect("/");
+  }else{
+    let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
+    response.render("urls_login", {
+      email: email
+    });
+  }
 });
 
 app.post("/login", (request, response) => {
@@ -101,7 +104,7 @@ app.get("/urls", (request, response) => {
     let templateVars = {
       urls: userDB,
       user_id: request.session.user_id,
-      email: email,
+      email: email
     };
     response.render("urls_index", templateVars);
   }else{
@@ -119,15 +122,15 @@ app.post("/urls", (request, response) => {
     }
     for(let key in urlDatabase){
       if(urlDatabase[key] === request.body.longURL){
-      response.redirect("http://localhost:8080/urls/" + key);
-      return;
+        response.redirect("http://localhost:8080/urls/" + key);
+        return;
+      }
     }
-  }
-  urlDatabase[shortUrl] = {
-    "longURL": request.body.longURL,
-    "author": request.session.user_id,
-  }
-  response.redirect("http://localhost:8080/urls/" + shortUrl);
+    urlDatabase[shortUrl] = {
+      "longURL": request.body.longURL,
+      "author": request.session.user_id
+    };
+    response.redirect("http://localhost:8080/urls/" + shortUrl);
   }else{
     response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
@@ -138,7 +141,7 @@ app.get("/urls/new", (request, response) => {
   let email = (request.session.user_id) ? usersDatabase[request.session.user_id].email : "";
   let userDB = findUrlsByAuthor(urlDatabase, request.session.user_id);
 
-  if (request.session.user_id){
+  if(request.session.user_id){
 
     let templateVars = {
       urls: userDB,
@@ -157,10 +160,10 @@ app.post("/urls/:id/delete", (request, response) => {
     response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
   if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
-     response.status(403).send("403 Forbidden.");
-   }else{
-      delete urlDatabase[request.params.id]
-      response.redirect("http://localhost:8080/urls/");
+    response.status(403).send("403 Forbidden.");
+  }else{
+    delete urlDatabase[request.params.id];
+    response.redirect("http://localhost:8080/urls/");
   }
 });
 
@@ -174,15 +177,15 @@ app.post("/urls/:id/update", (request, response) => {
     return;
   }
   if(!urlDatabase[request.params.id]){
-     response.status(404).send("404 Not found.");
-     return;
+    response.status(404).send("404 Not found.");
+    return;
   }
   if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
-     response.status(403).send("403 Forbidden.");
-     return;
-   }else{
-      urlDatabase[request.params.id].longURL = request.body.longURL;
-      response.redirect("http://localhost:8080/urls/");
+    response.status(403).send("403 Forbidden.");
+    return;
+  }else{
+    urlDatabase[request.params.id].longURL = request.body.longURL;
+    response.redirect("http://localhost:8080/urls/" + request.params.id);
   }
 });
 
@@ -193,7 +196,7 @@ app.get("/u/:shortURL", (request, response) => {
     let longURL = urlDatabase[request.params.shortURL].longURL;
     response.redirect(longURL);
   }
- });
+});
 
 app.get("/register", (request, response) =>{
   if(request.session.user_id){
@@ -204,7 +207,7 @@ app.get("/register", (request, response) =>{
   let templateVars = {
     urls: urlDatabase,
     email: email
-  }
+  };
 
   response.render("registration", templateVars);
 });
@@ -220,13 +223,13 @@ app.post("/register", (request, response) =>{
       return;
     }
   }
-    if(!request.body.password || !request.body.email){
-      response.status(400).send("400. Please enter a valid email adress and password.");
-      return;
-    }
-    usersDatabase[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
-    request.session.user_id = userID;
-    response.redirect("/urls");
+  if(!request.body.password || !request.body.email){
+    response.status(400).send("400. Please enter a valid email adress and password.");
+    return;
+  }
+  usersDatabase[userID] = {"id": userID, "email": request.body.email, "password": hashedPassword};
+  request.session.user_id = userID;
+  response.redirect("/urls");
 });
 
 app.get("/urls/:id", (request, response) => {
@@ -245,7 +248,7 @@ app.get("/urls/:id", (request, response) => {
           shortURL: request.params.id,
           longURL: urlDatabase[request.params.id].longURL,
           email: email
-        }
+        };
         response.render("urls_show", templateVars);
       }else{
         response.status(403).send("403 Forbidden.");
@@ -254,8 +257,8 @@ app.get("/urls/:id", (request, response) => {
       response.status(404).send("404 File not found.");
     }
   }else{
-      response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
-    }
+    response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+  }
 });
 
 app.listen(PORT, () => {

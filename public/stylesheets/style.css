@@ -104,22 +104,6 @@ form{
   justify-content: center;
 }
 
-/*.userform{
-  font-size: 16px;
-  display:flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}*/
-
-#updateURL{
- /* display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;*/
-}
-
 input{
   height:25px;
   color:#03A9F4;
@@ -156,21 +140,3 @@ a:visited{
 #returnHome{
   margin-top: 50px;
 }
-
-/*#headerRem{
-  letter-spacing: 3px;
-  -webkit-transition: letter-spacing 1s;
-  transition: letter-spacing: 1s;
-}
-
-#headerRem {
-  letter-spacing: -2px;
-  animation-duration: 3s;
-  animation-name: shrinkSpacing;
-
-}
-
-@keyframes shrinkSpacing {
-  from { letter-spacing:4px; }
-  to  { letter-spacing: -2px; }
-}*/

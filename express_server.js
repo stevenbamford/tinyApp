@@ -51,10 +51,9 @@ const checkLoginDetails = function(email, password, database){
       if(bcrypt.compareSync(password, database[user]["password"])){
         return database[user]["id"];
       }
-    }else{
-      return;
     }
-  }
+    }
+  return;
 };
 
 app.get("/login", (request, response) => {

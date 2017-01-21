@@ -75,7 +75,7 @@ app.post("/login", (request, response) => {
     request.session.user_id = userID;
     response.redirect("/urls");
   }else{
-    response.send("401 Forbidden. Please check <a href=\"/login\">Login</a> details and ensure you have created an account with us.");
+    response.status(401).send("401 Forbidden. Please check <a href=\"/login\">Login</a> details and ensure you have created an account with us.");
   }
 
 });
@@ -105,7 +105,7 @@ app.get("/urls", (request, response) => {
     };
     response.render("urls_index", templateVars);
   }else{
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
 });
 
@@ -129,7 +129,7 @@ app.post("/urls", (request, response) => {
   }
   response.redirect("http://localhost:8080/urls/" + shortUrl);
   }else{
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
 });
 
@@ -148,25 +148,25 @@ app.get("/urls/new", (request, response) => {
 
     response.render("urls_new", templateVars);
   }else{
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
 });
 
 app.post("/urls/:id/delete", (request, response) => {
   if(!request.session.user_id){
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
   }
   if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
-     response.send("403 Forbidden.");
+     response.status(403).send("403 Forbidden.");
    }else{
-    delete urlDatabase[request.params.id]
-    response.redirect("http://localhost:8080/urls/");
+      delete urlDatabase[request.params.id]
+      response.redirect("http://localhost:8080/urls/");
   }
 });
 
 app.post("/urls/:id/update", (request, response) => {
   if(!request.session.user_id){
-    response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+    response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
     return;
   }
   if(!request.body.longURL){
@@ -174,22 +174,21 @@ app.post("/urls/:id/update", (request, response) => {
     return;
   }
   if(!urlDatabase[request.params.id]){
-     response.send("404 Not found.");
+     response.status(404).send("404 Not found.");
      return;
   }
   if(urlDatabase[request.params.id]["author"] !== request.session.user_id){
-     response.send("403 Forbidden.");
+     response.status(403).send("403 Forbidden.");
      return;
-   }
-  else{
-   urlDatabase[request.params.id].longURL = request.body.longURL;
-   response.redirect("http://localhost:8080/urls/");
+   }else{
+      urlDatabase[request.params.id].longURL = request.body.longURL;
+      response.redirect("http://localhost:8080/urls/");
   }
 });
 
 app.get("/u/:shortURL", (request, response) => {
   if(!urlDatabase[request.params.shortURL]){
-    response.send("404 Not found.");
+    response.status(404).send("404 Not found.");
   }else{
     let longURL = urlDatabase[request.params.shortURL].longURL;
     response.redirect(longURL);
@@ -217,14 +216,12 @@ app.post("/register", (request, response) =>{
 
   for(let user in usersDatabase){
     if(usersDatabase[user]["email"] === request.body.email){
-      response.statusCode = 400;
-      response.send("400 Bad Request. Email already exists in database.");
+      response.status(400).send("400 Bad Request. Email already exists in database.");
       return;
     }
   }
     if(!request.body.password || !request.body.email){
-      response.statusCode = 400;
-      response.send("400. Please enter a valid email adress and password.");
+      response.status(400).send("400. Please enter a valid email adress and password.");
       return;
     }
     usersDatabase[userID] = {"id": userID, "email":request.body.email, "password":hashedPassword};
@@ -251,13 +248,13 @@ app.get("/urls/:id", (request, response) => {
         }
         response.render("urls_show", templateVars);
       }else{
-        response.send("403 Forbidden.");
+        response.status(403).send("403 Forbidden.");
       }
     }else{
-      response.send("404 File not found.");
+      response.status(404).send("404 File not found.");
     }
   }else{
-      response.send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
+      response.status(401).send("401 Unauthorized. Please <a href=\"/login\">Login</a>");
     }
 });
 
